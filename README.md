@@ -1,6 +1,6 @@
-# Nutrition App – Web Sistem Manajemen Nutrisi
+# SmartHealthy – Web Sistem Manajemen Nutrisi
 
-Dokumentasi resmi untuk struktur project, alur kerja, instalasi, dan hubungan antar komponen dalam aplikasi **Nutrition App**.
+Dokumentasi resmi untuk struktur project, alur kerja, instalasi, dan hubungan antar komponen dalam aplikasi **SmartHealthy**.
 
 ---
 
@@ -19,7 +19,7 @@ Dokumentasi resmi untuk struktur project, alur kerja, instalasi, dan hubungan an
 
 # � Tentang Aplikasi
 
-**Nutrition App** adalah aplikasi berbasis web untuk memantau asupan nutrisi harian. Aplikasi ini memungkinkan pengguna untuk mencatat makanan harian, mendapatkan rekomendasi menu berdasarkan target kalori, dan melihat statistik konsumsi nutrisi mereka.
+**SmartHealthy** adalah aplikasi berbasis web untuk memantau asupan nutrisi harian. Aplikasi ini memungkinkan pengguna untuk mencatat makanan harian, mendapatkan rekomendasi menu berdasarkan target kalori, dan melihat statistik konsumsi nutrisi mereka.
 
 ---
 
@@ -109,7 +109,7 @@ http://localhost/Back-end-Final-project/public/index.php
 # 📁 Struktur Direktori
 
 ```
-NutritionApp/
+SmartHealthy/
 ├── src/
 │   ├── Config/       # Konfigurasi Database
 │   ├── Models/       # Representasi Tabel Database (CRUD)
