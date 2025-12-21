@@ -72,10 +72,13 @@ require_once __DIR__ . '/layout_header.php';
                     <td><?= date('d M Y', strtotime($user['created_at'])) ?></td>
                     <td>
                         <?php if ($user['role'] !== 'admin' || $user['id'] !== $_SESSION['user']['id']): ?>
+                        <a href="edit_user.php?id=<?= $user['id'] ?>" class="btn small" style="background: white; color: #2563eb; border: 1px solid #cbd5e1; margin-right: 4px;">Edit</a>
                         <form method="POST" onsubmit="return confirm('Are you sure?');" style="display:inline;">
                             <input type="hidden" name="delete_id" value="<?= $user['id'] ?>">
                             <button type="submit" class="btn small danger">Delete</button>
                         </form>
+                        <?php else: ?>
+                            <a href="edit_user.php?id=<?= $user['id'] ?>" class="btn small" style="background: white; color: #2563eb; border: 1px solid #cbd5e1; margin-right: 4px;">Edit</a>
                         <?php endif; ?>
                     </td>
                 </tr>

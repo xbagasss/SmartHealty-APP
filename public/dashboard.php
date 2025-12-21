@@ -24,6 +24,26 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+// FORCE PROFILE SETUP
+// If user hasn't set up height/age/activity, redirect to onboarding
+// We check 'height' as a proxy for completed profile
+if (empty($_SESSION['user']['height']) || empty($_SESSION['user']['age'])) {
+    // Re-fetch from DB to be sure (in case session is stale)
+    $chkStmt = (new Database())->conn->prepare("SELECT height, age FROM users WHERE id = ?");
+    $chkStmt->bind_param("i", $_SESSION['user']['id']);
+    $chkStmt->execute();
+    $chkUser = $chkStmt->get_result()->fetch_assoc();
+
+    if (empty($chkUser['height']) || empty($chkUser['age'])) {
+        header("Location: setup_profile.php");
+        exit;
+    } else {
+        // Update session if DB has data but session doesn't
+        $_SESSION['user']['height'] = $chkUser['height'];
+        $_SESSION['user']['age'] = $chkUser['age'];
+    }
+}
+
 // ============================================
 // INITIALIZE DATABASE & USER DATA
 // ============================================
@@ -390,6 +410,20 @@ if ($goal === 'muscle') {
       .link-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     </style>
 
+    <!-- NEW: DAILY LOG REMINDER -->
+    <?php if ($todayCalories == 0): ?>
+    <section class="card" style="background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; margin-bottom: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="font-size: 32px; background: rgba(251, 191, 36, 0.2); width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">⚠️</div>
+        <div>
+          <h3 style="margin: 0 0 4px 0; font-size: 18px; color: #b45309;">Anda belum mencatat makanan hari ini!</h3>
+          <p style="margin: 0; opacity: 0.9; font-size: 14px;">Catat asupan nutrisi Anda untuk mendapatkan analisis kesehatan yang akurat.</p>
+        </div>
+      </div>
+      <a href="search_nutrition.php" class="btn" style="background: #d97706; color: white; padding: 10px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; white-space: nowrap;">⚡ Catat Sekarang</a>
+    </section>
+    <?php endif; ?>
+
     <section class="cards-row">
       <div class="stat card">
         <div class="stat-title">Today</div>
@@ -499,13 +533,34 @@ if ($goal === 'muscle') {
         </div>
 
         <?php if ($weightData['change'] < 0): ?>
-          <div style="margin-top: 16px; padding: 12px; background: rgba(74, 222, 128, 0.2); border-radius: 8px; border: 1px solid rgba(74, 222, 128, 0.3);">
-            <strong>🎉 Luar biasa!</strong> Anda telah menurunkan <?= abs($weightData['change']) ?> kg. Pertahankan!
-          </div>
+          <?php
+            // Calculate BMI for checking underweight
+            $h_m = ($uStats['height'] ?? 170) / 100;
+            $bmi = $weightData['current_weight'] / ($h_m * $h_m);
+          ?>
+          <?php if ($bmi < 18.5): ?>
+             <div style="margin-top: 16px; padding: 12px; background: rgba(251, 191, 36, 0.2); border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                <strong>⚠️ PERHATIAN:</strong> Berat turun <?= abs($weightData['change']) ?> kg, namun BMI Anda <?= number_format($bmi, 1) ?> (Kurang Ideal). Targetkan asupan <strong><?= isset($tdee) ? number_format($tdee + 300) : 2500 ?> kcal</strong> (Surplus) untuk mencapai berat ideal.
+             </div>
+          <?php else: ?>
+             <div style="margin-top: 16px; padding: 12px; background: rgba(74, 222, 128, 0.2); border-radius: 8px; border: 1px solid rgba(74, 222, 128, 0.3);">
+                <strong>🎉 Luar biasa!</strong> Anda telah menurunkan <?= abs($weightData['change']) ?> kg. Pertahankan!
+             </div>
+          <?php endif; ?>
         <?php elseif ($weightData['change'] > 0): ?>
-          <div style="margin-top: 16px; padding: 12px; background: rgba(251, 191, 36, 0.2); border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
-            <strong>⚠️ Perhatian:</strong> Berat naik <?= $weightData['change'] ?> kg. Perhatikan asupan kalori.
-          </div>
+          <?php 
+            $h_m = ($uStats['height'] ?? 170) / 100;
+            $bmi = $weightData['current_weight'] / ($h_m * $h_m);
+          ?>
+          <?php if ($bmi >= 30): ?>
+             <div style="margin-top: 16px; padding: 12px; background: rgba(239, 68, 68, 0.25); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.4);">
+                <strong>🚨 BAHAYA / OBESITAS:</strong> Berat naik <?= $weightData['change'] ?> kg. BMI: <?= number_format($bmi, 1) ?>. Batasi kalori maksimal <strong><?= isset($dailyTarget) ? $dailyTarget : 1500 ?> kcal</strong> per hari.
+             </div>
+          <?php else: ?>
+             <div style="margin-top: 16px; padding: 12px; background: rgba(251, 191, 36, 0.2); border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+                <strong>⚠️ Perhatian:</strong> Berat naik <?= $weightData['change'] ?> kg. Pastikan asupan tidak melebihi <strong><?= isset($dailyTarget) ? $dailyTarget : 2000 ?> kcal</strong>.
+             </div>
+          <?php endif; ?>
         <?php endif; ?>
       <?php else: ?>
         <div style="text-align: center; padding: 24px 0;">

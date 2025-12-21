@@ -66,6 +66,10 @@ require_once __DIR__ . '/layout_header.php';
                 <a href="add_user.php" class="btn small" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">+ Add User</a>
                 <a href="food_form.php" class="btn small" style="background: white; color: var(--text-muted); border: 1px solid var(--border);">+ Add Food</a>
             </div>
+            <div style="margin-top: 16px; border-top: 1px dashed #e2e8f0; padding-top: 16px;">
+                <h4 style="margin: 0 0 8px 0; font-size: 14px;">Daily Maintenance</h4>
+                <a href="../cron/run_reminders.php" target="_blank" class="btn small" style="background: #fdf2f8; color: #db2777; width: 100%; border: 1px solid #fbcfe8;">📧 Trigger Daily Email Reminders</a>
+            </div>
         </div>
 
         <div class="card">

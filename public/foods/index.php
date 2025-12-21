@@ -9,6 +9,9 @@ if (!isset($_SESSION['user'])) {
 }
 
 $db = new Database();
+
+// HANDLE SEEDING REMOVED
+
 $foods = $db->conn->query("SELECT * FROM foods ORDER BY id DESC");
 ?>
 <!doctype html>
@@ -79,12 +82,20 @@ $foods = $db->conn->query("SELECT * FROM foods ORDER BY id DESC");
 
   <main class="container">
     <section class="welcome card">
+      <?php if (isset($_GET['seeded'])): ?>
+        <div style="background: #dcfce7; color: #166534; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #86efac;">
+            ✅ Berhasil menambahkan <?= (int)$_GET['seeded'] ?> menu sehat baru!
+        </div>
+      <?php endif; ?>
+
       <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap: wrap; gap: 16px;">
         <div>
           <h1>Foods Database</h1>
           <p class="muted">Koleksi makanan dan informasi nutrisi lengkap.</p>
         </div>
-        <a href="create.php" class="btn">+ Buat Makanan</a>
+        <div style="display:flex; gap:12px;">
+            <a href="create.php" class="btn">+ Buat Makanan</a>
+        </div>
       </div>
     </section>
 

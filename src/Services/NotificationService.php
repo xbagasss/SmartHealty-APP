@@ -69,6 +69,20 @@ class NotificationService {
             $this->lastError = $errorMsg;
             
             // Detailed error logging
+            $logMessage = sprintf(
+                "[%s] Mail Error: %s | Host: %s | User: %s | To: %s\n",
+                date('Y-m-d H:i:s'),
+                $mail->ErrorInfo,
+                $smtpHost,
+                $smtpUser,
+                $to
+            );
+            
+            // Log to file
+            $logPath = __DIR__ . '/../../storage/logs/email_error.log';
+            if (!is_dir(dirname($logPath))) mkdir(dirname($logPath), 0777, true);
+            file_put_contents($logPath, $logMessage, FILE_APPEND);
+
             error_log('=== SMTP ERROR ===');
             error_log('Mail Error: ' . $mail->ErrorInfo);
             error_log('Exception: ' . $e->getMessage());

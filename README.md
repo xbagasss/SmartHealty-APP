@@ -1,223 +1,203 @@
-# SmartHealthy – Web Sistem Manajemen Nutrisi
+# SmartHealthy – Sistem Manajemen & Tracking Nutrisi Terpadu
 
-Dokumentasi resmi untuk struktur project, alur kerja, instalasi, dan hubungan antar komponen dalam aplikasi **SmartHealthy**.
-
----
-
-# � Daftar Isi
-
-1. [Tentang Aplikasi](#-tentang-aplikasi)
-2. [Fitur Utama](#-fitur-utama)
-3. [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
-4. [Instalasi & Konfigurasi](#-instalasi--konfigurasi)
-5. [Struktur Direktori](#-struktur-direktori)
-6. [Skema Database](#-skema-database)
-7. [Penjelasan Komponen](#-penjelasan-komponen)
-8. [Alur Kerja](#-alur-kerja)
+**SmartHealthy** adalah platform berbasis web yang dirancang untuk membantu pengguna mencapai target kesehatan mereka melalui pemantauan nutrisi yang presisi. Aplikasi ini menggabungkan pencatatan aktivitas makan, perhitungan kebutuhan kalori otomatis, dan analisis data visual untuk memberikan pengalaman pengguna yang holistik.
 
 ---
 
-# � Tentang Aplikasi
+# 📑 Daftar Isi
 
-**SmartHealthy** adalah aplikasi berbasis web untuk memantau asupan nutrisi harian. Aplikasi ini memungkinkan pengguna untuk mencatat makanan harian, mendapatkan rekomendasi menu berdasarkan target kalori, dan melihat statistik konsumsi nutrisi mereka.
-
----
-
-# 🚀 Fitur Utama
-
-*   **Manajemen Akun User**: Registrasi, Login, dan Pengaturan Profil (Berat Badan, Tinggi Badan, Target Kalori).
-*   **Pencarian Nutrisi Makanan**: Integrasi dengan **Edamam API** untuk mencari kandungan nutrisi makanan secara realtime.
-*   **Pencatatan Makanan Harian (Food Logging)**: Mencatat apa yang dimakan hari ini dan menghitung total kalori otomatis.
-*   **Analisis Nutrisi**: Menampilkan grafik asupan kalori harian dan mingguan.
-*   **Rekomendasi Menu (Meal Plan)**: Sistem cerdas yang merekomendasikan menu makanan harian sesuai dengan TDEE (Total Daily Energy Expenditure) pengguna.
-*   **Notifikasi Email**: Pengingat otomatis untuk mencatat makanan (menggunakan PHPMailer).
+1.  [Tentang Proyek](#-tentang-proyek)
+2.  [Fitur Unggulan](#-fitur-unggulan)
+3.  [Panduan Pengguna (User Manual)](#-panduan-pengguna-user-manual)
+4.  [Panduan Administrator (Admin Manual)](#-panduan-administrator-admin-manual)
+5.  [Arsitektur Teknis](#-arsitektur-teknis)
+6.  [Instalasi & Konfigurasi](#-instalasi--konfigurasi)
+7.  [Skema Database](#-skema-database)
+8.  [Troubleshooting](#-troubleshooting)
 
 ---
 
-# 🛠 Teknologi yang Digunakan
+# 🌟 Tentang Proyek
 
-*   **Bahasa Pemrograman**: PHP 8.x (Native)
-*   **Database**: MySQL / MariaDB
-*   **Frontend**: HTML5, CSS3, JavaScript (Vanilla), Chart.js (untuk grafik)
-*   **Dependencies (Composer)**:
-    *   `phpmailer/phpmailer`: Pengiriman email.
-    *   `vlucas/phpdotenv`: Manajemen environment variable.
+### Visi
+Menciptakan kesadaran pola makan sehat dengan alat yang mudah digunakan, akurat, dan dapat diakses oleh siapa saja.
+
+### Lingkup Sistem
+Sistem ini mencakup manajemen pengguna (User/Admin), integrasi API eksternal untuk data nutrisi, sistem rekomendasi berbasis algoritma TDEE, dan otomatisasi notifikasi email.
+
+---
+
+# 🚀 Fitur Unggulan
+
+### 1. Sistem Rekomendasi Menu Cerdas (Meal Plan)
+*   **Algoritma**: Menggunakan rumus **Mifflin-St Jeor** untuk menghitung BMR (Basal Metabolic Rate) dan TDEE (Total Daily Energy Expenditure).
+*   **Kustomisasi**: Menyesuaikan rekomendasi berdasarkan goal pengguna (Turun Berat Badan/Diet, Pertahankan, atau Tambah Otot/Bulking).
+*   **Logika**:
+    *   *Diet*: TDEE - 500 kkal.
+    *   *Maintain*: TDEE normal.
+    *   *Muscle Gain*: TDEE + 300 kkal (Fokus Protein tinggi).
+
+### 2. Pencarian Nutrisi Real-time
+*   **Integrasi**: Terhubung langsung dengan **Edamam Nutrition API**.
+*   **Data**: Menyajikan detail Kalori, Protein, Karbohidrat, dan Lemak per 100g atau per porsi.
+*   **Seeder Otomatis**: Fitur "One-Click Seeding" untuk mengisi database lokal dengan daftar 20+ makanan sehat populer (Buah, Sayur, Protein).
+
+### 3. Dashboard Analitik
+*   **Visualisasi Data**: Menggunakan **Chart.js**.
+*   **Line Chart**: Grafik tren kalori harian vs target.
+*   **Pie Chart (Doughnut)**: Distribusi makronutrisi mingguan (Protein vs Karbo vs Lemak) untuk memantau keseimbangan diet.
+*   **Weekly Insights**: Memberikan saran otomatis jika rata-rata kalori terlalu tinggi atau rendah.
+
+### 4. Sistem Pengingat (Daily Reminder)
+*   **Otomatisasi**: Script cron job untuk mendeteksi pengguna yang belum mencatat makanan hari ini.
+*   **Notifikasi**: Mengirim email motivasi via **PHPMailer** (SMTP Gmail) untuk menjaga konsistensi pengguna.
+
+### 5. Manajemen Role (Admin & User)
+*   **User**: Akses fitur tracking, profil, dan meal plan.
+*   **Admin**: Akses penuh ke dashboard admin, manajemen data pengguna (Edit/Delete/Promote Role), dan manajemen database makanan global.
+
+---
+
+# 📖 Panduan Pengguna (User Manual)
+
+### Memulai (Getting Started)
+1.  **Daftar Akun**: Masuk ke halaman Register, isi Nama, Email, dan Password.
+2.  **Setup Profil**: Saat pertama login, isi data diri (Berat, Tinggi, Umur, Gender, Aktivitas). Sistem akan otomatis menghitung target kalori Anda.
+
+### Mencatat Makanan
+1.  Buka menu **Search**.
+2.  Ketik nama makanan (misal: "Nasi Goreng" atau "Fried Rice").
+3.  Pilih makanan dari hasil pencarian API.
+4.  Klik **Tambahkan ke Log**. Nutrisi otomatis tersimpan dan grafik Anda akan terupdate.
+
+### Melihat Progres
+*   Buka **Dashboard** untuk melihat ringkasan cepat hari ini.
+*   Buka **Analytics** untuk melihat grafik detail dan Pie Chart nutrisi mingguan.
+
+---
+
+# 🛠 Panduan Administrator (Admin Manual)
+
+### Mengakses Panel Admin
+Login dengan akun yang memiliki role `admin`. Anda akan otomatis diarahkan atau bisa mengakses menu "Admin Panel" di navigasi.
+
+### Manajemen User
+1.  Buka menu **Manage Users**.
+2.  **Edit Role**: Klik tombol "Edit" pada user untuk mengubah status mereka menjadi Admin atau User biasa.
+3.  **Hapus User**: Klik "Delete" untuk menghapus akun yang tidak aktif atau melanggar aturan.
+
+### Manajemen Database Makanan
+1.  Buka menu **Manage Foods**.
+2.  **Generate Rekomendasi**: Klik tombol "⚡ Generate Rekomendasi" untuk memunculkan daftar makanan sehat default ke database global agar bisa dipilih semua user.
+
+### Menjalankan Reminder Harian
+1.  Di Dashboard Admin, cari widget **Daily Maintenance**.
+2.  Klik **"🚀 Trigger Daily Email Reminders"**.
+3.  Sistem akan mengecek siapa yang belum mengisi log hari ini dan mengirim email masal.
+
+---
+
+# 🏗 Arsitektur Teknis
+
+Project ini dibangun dengan pola arsitektur yang terstruktur dan modular menggunakan PHP Native (OOP).
+
+### Struktur Folder
+```
+Project/
+├── public/                 # Entry point aplikasi (Web Server Root)
+│   ├── css/                # Stylesheets
+│   ├── js/                 # Client-side scripts (Chart.js init)
+│   ├── admin/              # Halaman-halaman khusus Admin
+│   ├── foods/              # Halaman CRUD Makanan
+│   └── cron/               # Script otomatisasi (Reminder)
+│
+├── src/                    # Backend Logic
+│   ├── Config/             # Koneksi Database Wrapper
+│   ├── Models/             # Data Access Objects (User, Food, Log)
+│   └── Services/           # Business Logic Layer
+│       ├── AnalyticsService.php    # Logika statistik & query kompleks
+│       ├── EmailTemplateService.php # Template HTML email
+│       ├── NotificationService.php  # Wrapper PHPMailer
+│       └── ReminderService.php      # Logika deteksi user inaktif
+│
+└── vendor/                 # Dependencies (Composer)
+```
+
+### Pola Desain (Design Patterns)
+*   **Service Layer**: Logika bisnis (seperti hitung kalori, kirim email) dipisah dari File View (`public/`) agar kode lebih bersih dan *reusable*.
+*   **Singleton/Dependency Injection**: Digunakan pada koneksi Database untuk efisiensi resource.
 
 ---
 
 # ⚙ Instalasi & Konfigurasi
 
-Ikuti langkah berikut untuk menjalankan aplikasi di lokal (XAMPP/Laragon):
+### Persyaratan Sistem
+*   PHP >= 8.0
+*   MySQL / MariaDB
+*   Composer
+*   Web Server (Apache/Nginx)
 
-### 1. Clone Repository
+### Langkah Instalasi
+1.  **Clone Repository**
+    ```bash
+    git clone https://github.com/xbagasss/Back-end-Final-project.git
+    cd Back-end-Final-project
+    ```
 
-```bash
-git clone https://github.com/xbagasss/Back-end-Final-project.git
-cd Back-end-Final-project
-```
+2.  **Install Dependencies**
+    ```bash
+    composer install
+    ```
 
-### 2. Install Dependencies
+3.  **Setup Environment**
+    *   Copy `.env.example` ke `.env`.
+    *   Isi konfigurasi database dan email (SMTP).
+    *   Lihat file `SETUP_EMAIL.md` untuk panduan detail App Password Gmail.
 
-Pastikan **Composer** sudah terinstall, lalu jalankan:
-
-```bash
-composer install
-```
-
-### 3. Konfigurasi Database
-
-1.  Buat database baru di MySQL, misalnya `nutrition_db`.
-2.  Import file database (jika ada) atau pastikan tabel dibuat sesuai [Skema Database](#-skema-database) di bawah.
-
-### 4. Konfigurasi Environment
-
-Copy file `.env.example` menjadi `.env`:
-
-```bash
-cp .env.example .env
-```
-
-Lalu edit file `.env` sesuaikan dengan konfigurasi lokal Anda:
-
-```env
-DB_HOST=localhost
-DB_NAME=nutrition_db
-DB_USER=root
-DB_PASS=
-
-# Konfigurasi API Edamam (Untuk fitur search nutrition)
-EDAMAM_APP_ID=your_app_id
-EDAMAM_APP_KEY=your_app_key
-
-# Konfigurasi SMTP (Untuk notifikasi email)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=email@anda.com
-SMTP_PASS=password_aplikasi
-```
-
-### 5. Jalankan Aplikasi
-
-Buka browser dan akses:
-
-```
-http://localhost/Back-end-Final-project/public/index.php
-```
-
----
-
-# 📁 Struktur Direktori
-
-```
-SmartHealthy/
-├── src/
-│   ├── Config/       # Konfigurasi Database
-│   ├── Models/       # Representasi Tabel Database (CRUD)
-│   ├── Services/     # Business Logic & Integrasi API
-│
-├── public/           # File yang diakses User (Frontend/Views)
-│   ├── index.php     # Landing Page
-│   ├── dashboard.php # Halaman Utama User
-│   ├── api/          # (Opsional) Endpoint AJAX
-│
-├── vendor/           # Library Composer
-├── .env              # Konfigurasi Sensitif
-└── .gitignore        # Daftar file yang diabaikan Git
-```
+4.  **Import Database**
+    *   Jalankan file SQL yang disediakan (jika ada) atau biarkan aplikasi membuat tabel saat inisialisasi (tergantung konfigurasi).
 
 ---
 
 # 🗄 Skema Database
 
-Berikut adalah tabel utama yang digunakan dalam aplikasi:
+### Tabel: `users`
+| Kolom | Tipe | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Auto Increment |
+| `name` | VARCHAR | Nama Lengkap |
+| `email` | VARCHAR | Unique Email |
+| `role` | ENUM | `'user'`, `'admin'` (Default: 'user')|
+| `daily_calorie_goal`| INT | Target kalori harian (Hasil Kalkulasi) |
 
-### 1. `users`
-Menyimpan data pengguna dan target kesehatan mereka.
-*   `id` (INT, PK, AI)
-*   `name` (VARCHAR)
-*   `email` (VARCHAR, Unique)
-*   `password` (VARCHAR)
-*   `height`, `weight`, `age` (INT)
-*   `daily_calorie_goal` (INT)
+### Tabel: `foods`
+| Kolom | Tipe | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Auto Increment |
+| `name` | VARCHAR | Nama Makanan |
+| `calories, protein...`| INT | Nilai Makro per porsi |
+| `created_by` | INT (FK)| ID User pembuat (atau Admin) |
 
-### 2. `foods`
-Database makanan lokal yang bisa dipilih user.
-*   `id` (INT, PK, AI)
-*   `name` (VARCHAR)
-*   `calories`, `protein`, `carbs`, `fat` (INT)
-*   `created_by` (INT, FK -> users.id)
-
-### 3. `nutrition_logs`
-Catatan riwayat makan user per hari.
-*   `id` (INT, PK, AI)
-*   `user_id` (INT, FK -> users.id)
-*   `food_name` (VARCHAR)
-*   `calories` (INT)
-*   `date` (DATE)
-
----
-
-# 🔍 Penjelasan Komponen
-
-## **1. src/Models/**
-
-Model bertanggung jawab untuk komunikasi langsung dengan database.
-*   **User.php**: Menangani autentikasi dan profil user.
-*   **Food.php**: CRUD untuk data makanan.
-*   **NutritionLog.php**: Mencatat dan merekap kalori harian.
-
-## **2. src/Services/**
-
-Layer logic yang memisahkan kode kompleks dari Controller/View.
-*   **AuthService**: Validasi login/register.
-*   **NutritionApiClient**: Mengambil data dari **Edamam API**.
-*   **MealRecommendationService**: Algoritma penghitung kebutuhan kalori (TDEE).
-*   **NotificationService**: Mengirim email pengingat makan.
-
-## **3. public/**
-
-Bagian Interface yang berinteraksi dengan user.
-*   **`search_nutrition.php`**: Menggunakan Javascript untuk memanggil API internal yang kemudian meneruskan request ke Edamam.
-*   **`dashboard.php`**: Menampilkan grafik chart.js berdasarkan data dari `AnalyticsService`.
+### Tabel: `nutrition_logs`
+| Kolom | Tipe | Keterangan |
+| :--- | :--- | :--- |
+| `id` | INT (PK) | Auto Increment |
+| `user_id` | INT (FK)| Pemilik log |
+| `date` | DATE | Tanggal pencatatan |
+| `food_name` | VARCHAR | Snapshot nama makanan |
 
 ---
 
-# 🔗 Alur Kerja
+# 🔧 Troubleshooting
 
-**Contoh: User Mencari Makanan**
+### Masalah Email
+*   **Error**: "SMTP connect() failed"
+*   **Solusi**: Pastikan Anda menggunakan **App Password** Gmail (16 digit), bukan password login biasa. Cek juga apakah ekstensi `openssl` aktif di `php.ini`.
 
-```
-User (Browser)
-   │
-   ▼
-public/search_nutrition.php (Input Query)
-   │
-   ▼
-src/Services/NutritionApiClient.php
-   │
-   │ (Request HTTP)
-   ▼
-Edamam API (External)
-   │
-   │ (JSON Response)
-   ▼
-NutritionApiClient.php (Parsing Data)
-   │
-   ▼
-public/search_nutrition.php (Tampil Hasil)
-```
+### Masalah Grafik
+*   **Error**: Grafik tidak muncul di Dashboard/Analytics.
+*   **Solusi**: Pastikan Anda memiliki koneksi internet karena library `Chart.js` diload dari CDN.
 
-**Contoh: User Menyimpan Log Makanan**
-
-```
-User Klik "Simpan"
-   │
-   ▼
-public/save_food.php
-   │
-   ▼
-src/Models/NutritionLog.php (Insert DB)
-   │
-   ▼
-Database (Tabel nutrition_logs)
-```
+### Masalah Login Admin
+*   **Error**: Tidak bisa akses halaman admin.
+*   **Solusi**: Minta admin lain mengubah role Anda, atau edit manual di database (Tabel `users`, kolom `role` ubah jadi `'admin'`).

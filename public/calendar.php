@@ -88,7 +88,7 @@ while ($d = $q->fetch_assoc()) {
     <?php if (empty($days)): ?>
         <div class="card" style="text-align:center; padding: 40px; margin-top: 20px;">
             <p class="muted">Belum ada riwayat makanan.</p>
-            <a href="food_search.php" class="btn">Mulai Mencatat</a>
+            <a href="search_nutrition.php" class="btn">Mulai Mencatat</a>
         </div>
     <?php else: ?>
         <div class="calendar-grid">

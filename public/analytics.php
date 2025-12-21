@@ -72,6 +72,13 @@ $history = $analyticsService->getHistory($user_id);
 
     <div class="grid-2" style="margin-top: 16px;">
       <div class="card">
+        <h3>Weekly Macro Distribution</h3>
+        <div style="position: relative; height: 300px;">
+            <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
         <h3>Most Eaten Foods</h3>
         <div class="food-list">
           <?php if (!empty($top)): ?>
@@ -86,8 +93,9 @@ $history = $analyticsService->getHistory($user_id);
           <?php endif; ?>
         </div>
       </div>
+    </div>
 
-      <div class="card">
+    <section class="card" style="margin-top: 16px;">
         <h3>Insight Mingguan</h3>
         <p class="muted small" style="margin-bottom: 16px;">Dihitung otomatis dari rata-rata data makro</p>
         
@@ -100,7 +108,11 @@ $history = $analyticsService->getHistory($user_id);
         }
         ?>
 
-        <?php if (empty($ins)): ?>
+        <?php if (empty($data)): ?>
+            <div class="alert" style="background:#f1f5f9; color:#64748b; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+                ℹ️ Belum cukup data untuk analisis. Yuk mulai catat makananmu!
+            </div>
+        <?php elseif (empty($ins)): ?>
             <div class="alert" style="background:#d1fae5; color:#065f46; padding:12px; border-radius:8px;">
                 ✅ Pola makan stabil, lanjutkan!
             </div>
@@ -111,8 +123,7 @@ $history = $analyticsService->getHistory($user_id);
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-      </div>
-    </div>
+    </section>
 
     <section class="card" style="margin-top:16px;">
         <h3>History (Last 20 Entries)</h3>
@@ -193,6 +204,30 @@ $history = $analyticsService->getHistory($user_id);
             maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom' } },
             scales: { x: { stacked: true }, y: { stacked: true } }
+        }
+    });
+
+    // Pie Chart
+    const totalP = p.reduce((a, b) => a + Number(b), 0);
+    const totalC = c.reduce((a, b) => a + Number(b), 0);
+    const totalF = f.reduce((a, b) => a + Number(b), 0);
+
+    new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Protein', 'Karbs', 'Lemak'],
+            datasets: [{
+                data: [totalP, totalC, totalF],
+                backgroundColor: ['#00A3FF', '#F6C84C', '#FF6B6B'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { position: 'right' } 
+            }
         }
     });
 </script>
