@@ -325,7 +325,7 @@ if ($goal === 'muscle') {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Dashboard — SmartHealthy (Blue Premium)</title>
+  <title>Dashboard — SmartHealthy</title>
   <link rel="stylesheet" href="dashboard.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
