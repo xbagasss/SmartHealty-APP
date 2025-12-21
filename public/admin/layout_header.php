@@ -34,7 +34,6 @@
       <a href="categories.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'categories.php' ? 'active-admin' : '' ?>">Categories</a>
       <a href="api_logs.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'api_logs.php' ? 'active-admin' : '' ?>">API Logs</a>
       <a href="reports.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'reports.php' ? 'active-admin' : '' ?>">Reports</a>
-      <a href="settings.php" class="nav-link <?= basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active-admin' : '' ?>">Settings</a>
       
       <a href="../logout.php" class="nav-link logout">Logout</a>
     </nav>

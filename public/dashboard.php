@@ -325,7 +325,7 @@ if ($goal === 'muscle') {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Dashboard — SmartHealthy (Blue Premium)</title>
+  <title>Dashboard — SmartHealthy</title>
   <link rel="stylesheet" href="dashboard.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -664,10 +664,11 @@ if ($goal === 'muscle') {
             </li>
           <?php endwhile; ?>
         </ul>
-        <form method="post" action="apply_plan_to_today.php" style="margin-top:16px;">
-            <input type="hidden" name="date" value="<?= date('Y-m-d') ?>">
-            <button class="btn btn-block" style="background:var(--success);" type="submit" onclick="return confirm('Salin plan ke log harian?')">Apply to Food Diary</button>
-        </form>
+        <div style="margin-top:16px;">
+            <a href="apply_plan_to_today.php?date=<?= date('Y-m-d') ?>" class="btn btn-block" style="background:var(--success); display:block; text-align:center; padding: 10px; text-decoration:none;">
+                Apply to Food Diary
+            </a>
+        </div>
       <?php endif; ?>
     </section>
 

@@ -209,13 +209,9 @@ if ($uStats) {
             <h3 style="color: #047857;">Bingung mau makan apa?</h3>
             <p class="muted" style="color: #064e3b;">Dapatkan rekomendasi menu harian yang sehat dan sesuai kebutuhan kalorimu!</p>
         </div>
-        <form method="post">
-            <input type="hidden" name="action" value="generate_plan">
-            <input type="hidden" name="plan_date" value="<?= htmlspecialchars($date) ?>">
-            <button class="btn btn-block" type="submit" onclick="return confirm('Ini akan mengganti plan yang ada di tanggal ini. Lanjutkan?')" style="background: #059669;">
+            <a href="generate_plan_preview.php?date=<?= htmlspecialchars($date) ?>" class="btn btn-block" style="background: #059669; display:block; text-align:center; padding: 12px; text-decoration:none;">
                 ✨ Buat Rekomendasi Otomatis
-            </button>
-        </form>
+            </a>
     </div>
 
         <div class="card">
@@ -302,10 +298,7 @@ if ($uStats) {
         <div class="card" style="margin-top: 20px;">
             <h3>Action</h3>
             <p class="muted small">Salin semua rencana hari ini ke Food Diary (Log Harian).</p>
-            <form method="post" action="apply_plan_to_today.php">
-                <input type="hidden" name="date" value="<?= htmlspecialchars($date) ?>">
-                <button class="btn btn-block" style="background:var(--success);" type="submit" onclick="return confirm('Salin semua plan ke log harian?')">Apply to Food Diary</button>
-            </form>
+            <a href="apply_plan_to_today.php?date=<?= htmlspecialchars($date) ?>" class="btn btn-block" style="background:var(--success); display:block; text-align:center; padding: 12px; text-decoration:none;">Apply to Food Diary</a>
         </div>
     </div>
   </div>

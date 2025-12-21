@@ -74,11 +74,13 @@ class MealRecommendationService {
     /**
      * Generate plan for a specific date
      */
-    public function generateDailyPlan($userId, $date) {
+    /**
+     * Generate plan logic (returns array)
+     */
+    public function getDailyRecommendation($userId) {
         $targetCalories = $this->calculateDailyCalories($userId);
         
         // Calorie Distribution
-        // Breakfast 25%, Lunch 35%, Dinner 25%, Snack 15%
         $targets = [
             'breakfast' => $targetCalories * 0.25,
             'lunch' => $targetCalories * 0.35,
@@ -86,34 +88,49 @@ class MealRecommendationService {
             'snack' => $targetCalories * 0.15
         ];
 
-        // Clear existing plan for this date? (Optional, maybe just append or update. Let's clear to avoid dupes)
-        $del = $this->db->conn->prepare("DELETE FROM meal_plans WHERE user_id = ? AND plan_date = ?");
-        $del->bind_param("is", $userId, $date);
-        $del->execute();
+        $plan = [];
 
         foreach ($targets as $mealType => $calTarget) {
             $food = $this->getRandomFood($mealType);
             if ($food) {
-                // Determine category mapping if needed, but we selecting by category directly
-                // Logic: 
-                // Breakfast -> category 'breakfast'
-                // Lunch/Dinner -> category 'main'
-                // Snack -> category 'snack'
-
                 $servings = 1;
                 if ($food['calories'] > 0) {
                     $servings = $calTarget / $food['calories'];
-                    // Round to nearest 0.25
                     $servings = round($servings * 4) / 4;
-                    if ($servings < 0.25) $servings = 0.5; // Minimum portion
+                    if ($servings < 0.25) $servings = 0.5;
                 }
-
-                // Insert into plan
-                $ins = $this->db->conn->prepare("INSERT INTO meal_plans (user_id, plan_date, meal_type, food_id, servings, notes) VALUES (?, ?, ?, ?, ?, ?)");
-                $notes = "Rekarendasi (" . round($calTarget) . " kcal)";
-                $ins->bind_param("issids", $userId, $date, $mealType, $food['id'], $servings, $notes);
-                $ins->execute();
+                
+                $plan[] = [
+                    'meal_type' => $mealType,
+                    'food_id' => $food['id'],
+                    'food_name' => $food['name'],
+                    'calories' => $food['calories'], // per serving
+                    'servings' => $servings,
+                    'total_calories' => $food['calories'] * $servings,
+                    'notes' => "Rekomendasi (" . round($calTarget) . " kcal)"
+                ];
             }
+        }
+        return $plan;
+    }
+
+    /**
+     * Generate and Save plan for a specific date
+     */
+    public function generateDailyPlan($userId, $date) {
+        $planItems = $this->getDailyRecommendation($userId);
+        
+        // Clear existing plan
+        $del = $this->db->conn->prepare("DELETE FROM meal_plans WHERE user_id = ? AND plan_date = ?");
+        $del->bind_param("is", $userId, $date);
+        $del->execute();
+
+        // Save new plan
+        $ins = $this->db->conn->prepare("INSERT INTO meal_plans (user_id, plan_date, meal_type, food_id, servings, notes) VALUES (?, ?, ?, ?, ?, ?)");
+        
+        foreach ($planItems as $item) {
+            $ins->bind_param("issids", $userId, $date, $item['meal_type'], $item['food_id'], $item['servings'], $item['notes']);
+            $ins->execute();
         }
 
         return true;
