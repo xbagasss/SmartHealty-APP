@@ -18,6 +18,16 @@ $food = $db->conn->query("SELECT * FROM foods WHERE id = $food_id")->fetch_assoc
 
 if (!$food) exit("Food not found");
 
+// Cek apakah makanan sudah ada di logs hari ini
+$checkStmt = $db->conn->prepare("SELECT id FROM nutrition_logs WHERE user_id = ? AND food_id = ? AND date = CURDATE()");
+$checkStmt->bind_param("ii", $user_id, $food_id);
+$checkStmt->execute();
+if ($checkStmt->get_result()->num_rows > 0) {
+    $_SESSION['flash_error'] = "Makanan ini sudah Anda tambahkan hari ini!";
+    header("Location: ../dashboard.php");
+    exit;
+}
+
 // Insert ke logs
 $stmt = $db->conn->prepare("
     INSERT INTO nutrition_logs 

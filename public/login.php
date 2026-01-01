@@ -13,7 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     $user = $auth->login($email, $password);
 
-    if ($user) {
+    if ($user === 'unverified') {
+        $message = 'Akun belum diverifikasi. <a href="verify_otp.php?email='.urlencode($email).'">Verifikasi sekarang</a>';
+    } elseif ($user) {
         $_SESSION['user'] = $user;
         header('Location: dashboard.php');
         exit;

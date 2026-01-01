@@ -12,13 +12,13 @@ class NutritionLog
         $this->db = $db->conn;
     }
 
-    public function addLog($user_id, $food, $calories)
+    public function addLog($user_id, $food, $calories, $mealType = 'Snack')
     {
         $stmt = $this->db->prepare(
-            "INSERT INTO nutrition_logs (user_id, food_name, calories, date)
-             VALUES (?, ?, ?, CURDATE())"
+            "INSERT INTO nutrition_logs (user_id, food_name, calories, meal_type, date)
+             VALUES (?, ?, ?, ?, CURDATE())"
         );
-        $stmt->bind_param("isi", $user_id, $food, $calories);
+        $stmt->bind_param("isss", $user_id, $food, $calories, $mealType);
         return $stmt->execute();
     }
 

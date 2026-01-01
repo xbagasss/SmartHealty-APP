@@ -45,11 +45,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apply_items'])) {
         $item = $planStmt->get_result()->fetch_assoc();
 
         if ($item) {
-             // Use user-submitted servings if we want to allow editing, 
-             // but for now let's stick to the plan's servings or what was in the form.
-             // If we had input fields like items[$food_id][servings], we would use that.
-             // For simplicity, let's use the plan's servings.
-             
+            $checkStmt = $db->conn->prepare("SELECT id FROM nutrition_logs WHERE user_id = ? AND food_id = ? AND date = ?");
+            $checkStmt->bind_param("iis", $user_id, $item['id'], $date);
+            $checkStmt->execute();
+            
+            if ($checkStmt->get_result()->num_rows > 0) {
+                // Skip duplicate
+                continue;
+            }
+
              $servings = $item['servings'];
              
              $cal = $item['calories'] * $servings;
@@ -74,8 +78,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['apply_items'])) {
         }
     }
     
-    // Set a flash message (optional)
-    // $_SESSION['flash'] = "$count items applied to your diary.";
+    $skipped = count($selected_items) - $count;
+    $msg = "$count items added to your diary.";
+    if ($skipped > 0) {
+        $msg .= " ($skipped duplicates skipped)";
+        if ($count === 0) {
+            $_SESSION['flash_error'] = "Semua item yang dipilih sudah ada di diary hari ini.";
+        } else {
+             $_SESSION['flash_success'] = $msg;
+        }
+    } else {
+        $_SESSION['flash_success'] = $msg;
+    }
     
     header("Location: dashboard.php");
     exit;

@@ -134,9 +134,11 @@ $foods = $db->conn->query("SELECT * FROM foods ORDER BY id DESC");
             <div class="food-actions">
                 <a href="add_today.php?id=<?= $row['id'] ?>" class="btn btn-block small" style="flex:2;">+ Log</a>
                 <a href="edit.php?id=<?= $row['id'] ?>" class="btn small" style="background: white; color: var(--text-muted); border: 1px solid var(--border); flex:1;">Edit</a>
+                <?php if (isset($_SESSION['user']['role']) && $_SESSION['user']['role'] === 'admin'): ?>
                 <a href="delete.php?id=<?= $row['id'] ?>" onclick="return confirm('Hapus makanan ini?');" class="btn small danger" style="background: white; color: var(--danger); border: 1px solid #fee2e2; flex:1; padding: 6px;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </a>
+                <?php endif; ?>
             </div>
         </div>
       <?php endwhile; ?>

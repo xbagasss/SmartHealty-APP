@@ -345,6 +345,18 @@ if ($goal === 'muscle') {
   </header>
 
   <main class="container">
+    <?php if (isset($_SESSION['flash_error'])): ?>
+      <div class="alert alert-danger" style="background: #fee2e2; color: #991b1b; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #fca5a5;">
+        <?= htmlspecialchars($_SESSION['flash_error']) ?>
+        <?php unset($_SESSION['flash_error']); ?>
+      </div>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['flash_success'])): ?>
+      <div class="alert alert-success" style="background: #dcfce7; color: #166534; padding: 12px; border-radius: 8px; margin-bottom: 16px; border: 1px solid #86efac;">
+        <?= htmlspecialchars($_SESSION['flash_success']) ?>
+        <?php unset($_SESSION['flash_success']); ?>
+      </div>
+    <?php endif; ?>
     <section class="welcome card">
       <div>
         <h1>Hello, <?= htmlspecialchars($user['name']) ?></h1>
@@ -722,6 +734,9 @@ if ($goal === 'muscle') {
       <?php endif; ?>
     </section>
 
+    <!-- JS Injected Recommendations -->
+    <section id="smart-recommendations" class="card" style="display: none;"></section>
+    
   </main>
 
 <script>
@@ -750,10 +765,37 @@ fetch('chart_data.php')
             }
         }
     });
-    fetch('recommendation_engine.php').then(r=>r.json()).then(d=>{
-  // render suggestions into DOM
-});
+    fetch('recommendation_engine.php')
+    .then(r => r.json())
+    .then(d => {
+        if (!d || !d.foods || d.foods.length === 0) return;
 
+        const container = document.getElementById('smart-recommendations');
+        if (!container) return;
+
+        let html = `<h3>💡 Smart Recommendations</h3>`;
+        
+        if (d.reason) {
+            html += `<p class="muted" style="margin-bottom: 16px;">${d.reason}</p>`;
+        }
+
+        html += `<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">`;
+        
+        d.foods.forEach(f => {
+            html += `
+            <div style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc;">
+                <div style="font-weight: 600; color: #334155; margin-bottom: 4px;">${f.name}</div>
+                <div style="font-size: 13px; color: #64748b;">${f.desc}</div>
+            </div>`;
+        });
+        
+        html += `</div>`;
+        
+        container.innerHTML = html;
+        container.style.display = 'block';
+    })
+    .catch(e => console.error("Failed to load recommendations", e));
+});
 });
 </script>
 </body>

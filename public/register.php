@@ -9,19 +9,9 @@ $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($auth->register($_POST['name'], $_POST['email'], $_POST['password'])) {
-        // Auto Login
-        $user = $auth->login($_POST['email'], $_POST['password']);
-        if ($user) {
-            session_start();
-            $_SESSION['user'] = $user;
-            // Redirect DIRECTLY to profile setup
-            header('Location: setup_profile.php');
-            exit;
-        } else {
-            // Fallback (should not happen)
-            header('Location: login.php?registered=1');
-            exit;
-        }
+        // Redirect to OTP Verification
+        header('Location: verify_otp.php?email=' . urlencode($_POST['email']));
+        exit;
     } else {
         $message = 'Email sudah digunakan!';
     }
@@ -151,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST">
             <div class="form-group">
                 <label class="form-label">Full Name</label>
-                <input type="text" name="name" class="form-control" style="height:48px; font-size:16px;" placeholder="John Doe" required>
+                <input type="text" name="name" class="form-control" style="height:48px; font-size:16px;" placeholder="Gibran" required>
             </div>
 
             <div class="form-group">

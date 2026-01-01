@@ -9,6 +9,10 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
+if (!isset($_SESSION['user']['role']) || $_SESSION['user']['role'] !== 'admin') {
+    die("Access denied. Admins only.");
+}
+
 $db = new Database();
 $id = intval($_GET['id']);
 

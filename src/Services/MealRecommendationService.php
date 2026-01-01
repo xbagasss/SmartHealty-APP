@@ -80,6 +80,13 @@ class MealRecommendationService {
     public function getDailyRecommendation($userId) {
         $targetCalories = $this->calculateDailyCalories($userId);
         
+        // Fetch user goal for smart filtering
+        $stmt = $this->db->conn->prepare("SELECT goal FROM users WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $user = $stmt->get_result()->fetch_assoc();
+        $goal = $user['goal'] ?? 'maintain';
+
         // Calorie Distribution
         $targets = [
             'breakfast' => $targetCalories * 0.25,
@@ -89,15 +96,20 @@ class MealRecommendationService {
         ];
 
         $plan = [];
+        $usedFoodIds = []; // Prevent duplicates in same day
 
         foreach ($targets as $mealType => $calTarget) {
-            $food = $this->getRandomFood($mealType);
+            $food = $this->getSmartFood($mealType, $goal, $usedFoodIds);
+            
             if ($food) {
+                $usedFoodIds[] = $food['id'];
+                
                 $servings = 1;
                 if ($food['calories'] > 0) {
                     $servings = $calTarget / $food['calories'];
-                    $servings = round($servings * 4) / 4;
-                    if ($servings < 0.25) $servings = 0.5;
+                    // Round to nearest 0.5 to make it realistic
+                    $servings = round($servings * 2) / 2;
+                    if ($servings < 0.5) $servings = 0.5;
                 }
                 
                 $plan[] = [
@@ -136,58 +148,67 @@ class MealRecommendationService {
         return true;
     }
 
-    private function getRandomFood($mealType) {
+    public function getSmartFood($mealType, $goal, $excludeIds = []) {
         $category = 'main';
         if ($mealType === 'breakfast') $category = 'breakfast';
         if ($mealType === 'snack') $category = 'snack';
         
-        // 1. Try to get a "Balanced" option first
-        // Criteria: Protein > 15%, Fat < 40%, Carbs < 60% of total mass
-        // We use a complex WHERE clause
-        $sqlBalanced = "SELECT id, name, calories, protein, carbs, fat 
-                        FROM foods 
-                        WHERE category = ? 
-                        AND (protein / (protein + carbs + fat)) > 0.15
-                        AND (fat / (protein + carbs + fat)) < 0.40
-                        AND (carbs / (protein + carbs + fat)) < 0.65
-                        ORDER BY RAND() LIMIT 1";
-                        
-        $stmt = $this->db->conn->prepare($sqlBalanced);
-        $stmt->bind_param("s", $category);
-        $stmt->execute();
-        $res = $stmt->get_result();
-
-        if ($res->num_rows > 0) {
-            return $res->fetch_assoc();
-        }
-
-        // 2. Fallback: If no balanced option (e.g. Snacks often fail), try 'High Protein' (>15%)
-        $sqlProtein = "SELECT id, name, calories, protein, carbs, fat 
-                       FROM foods 
-                       WHERE category = ? 
-                       AND (protein / (protein + carbs + fat)) > 0.15
-                       ORDER BY RAND() LIMIT 1";
-        $stmt = $this->db->conn->prepare($sqlProtein);
-        $stmt->bind_param("s", $category);
-        $stmt->execute();
-        $res = $stmt->get_result();
-
-        if ($res->num_rows > 0) {
-            return $res->fetch_assoc();
+        // Base Query
+        $sql = "SELECT id, name, calories, protein, carbs, fat FROM foods WHERE category = ?";
+        
+        // Filter Exclusions
+        if (!empty($excludeIds)) {
+            $in = str_repeat('?,', count($excludeIds) - 1) . '?';
+            $sql .= " AND id NOT IN ($in)";
         }
         
-        // 3. Last Resort: Any food in category
-        $sqlAny = "SELECT id, name, calories, protein, carbs, fat FROM foods WHERE category = ? ORDER BY RAND() LIMIT 1";
-        $stmt = $this->db->conn->prepare($sqlAny);
-        $stmt->bind_param("s", $category);
+        // Smart ORDER BY based on Goal
+        if ($goal === 'diet') {
+            // Diet: Maximize Protein per Calorie (Satiety & Muscle Retention)
+            // Score = (Protein * 10) - (Calories * 0.1)
+            $sql .= " ORDER BY (protein / GREATEST(calories, 1)) DESC, RAND()";
+        } elseif ($goal === 'muscle') {
+            // Muscle: High Protein & Moderate Carbs
+            // Score = Protein + (carbs * 0.5)
+            $sql .= " ORDER BY (protein + (carbs * 0.5)) DESC, RAND()";
+        } elseif ($goal === 'bulking') {
+            // Bulking: Maximize Calorie Density (Easy to eat surplus)
+            // Score = Calories
+            $sql .= " ORDER BY calories DESC, RAND()";
+        } else {
+            // Maintain: Balanced approach, slightly random but favoring good macros
+            $sql .= " ORDER BY RAND()";
+        }
+        
+        $sql .= " LIMIT 5"; // Get top 5 candidates
+
+        $stmt = $this->db->conn->prepare($sql);
+        
+        // Bind Params dynamically
+        $types = "s";
+        $params = [$category];
+        foreach ($excludeIds as $id) {
+            $types .= "i";
+            $params[] = $id;
+        }
+        
+        $stmt->bind_param($types, ...$params);
         $stmt->execute();
         $res = $stmt->get_result();
+
+        // Pick one random from the top 5 candidates to add variety
+        // otherwise it always picks the absolute #1 best food
+        $candidates = [];
+        while ($row = $res->fetch_assoc()) {
+            $candidates[] = $row;
+        }
         
-        if ($res->num_rows > 0) {
-            return $res->fetch_assoc();
+        if (!empty($candidates)) {
+            return $candidates[array_rand($candidates)];
         }
 
-        // 4. Absolute Fallback
-        return $this->db->conn->query("SELECT id, name, calories FROM foods ORDER BY RAND() LIMIT 1")->fetch_assoc();
+        // Fallback: If strict filtering returns nothing (e.g. empty category), relax constraints
+        // Try any food from category ignoring exclusions if needed (though unlikely)
+        return $this->db->conn->query("SELECT id, name, calories, protein, carbs, fat FROM foods WHERE category = '$category' ORDER BY RAND() LIMIT 1")->fetch_assoc();
     }
 }

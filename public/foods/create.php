@@ -31,21 +31,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($stmt->execute()) {
         $foodId = $stmt->insert_id;
 
+
+        // Determine Meal Type
+        $hour = (int)date('H');
+        $mealType = 'Snack';
+        if ($hour >= 4 && $hour < 11) {
+            $mealType = 'Breakfast';
+        } elseif ($hour >= 11 && $hour < 15) {
+            $mealType = 'Lunch';
+        } elseif ($hour >= 15 && $hour < 21) {
+            $mealType = 'Dinner';
+        }
+
         // 2. AUTO INSERT ke nutrition_logs
         $log = $db->conn->prepare("
             INSERT INTO nutrition_logs
-            (user_id, food_id, food_name, calories, protein, carbs, fat, date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())
+            (user_id, food_id, food_name, calories, protein, carbs, fat, meal_type, date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURDATE())
         ");
 
-        $log->bind_param("iisiddd",
+        $log->bind_param("iisiddds",
             $userId,
             $foodId,
             $name,
             $cal,
             $protein,
             $carbs,
-            $fat
+            $fat,
+            $mealType
         );
 
         $log->execute();
